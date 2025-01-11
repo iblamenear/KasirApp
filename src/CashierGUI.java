@@ -3,6 +3,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 
 public class CashierGUI extends JFrame { // Class Cashier GUI
@@ -13,7 +17,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
     private JTextArea cartTextArea;
     private double totalHarga = 0;
 
-    public CashierGUI() {
+    public CashierGUI() { // Konstruktor CashierGUI
         setTitle("Kasir - Dashboard");
         setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -25,7 +29,23 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         setVisible(true);
     }
 
-    private void initUI() {
+    private void initUI() { // Method untuk inisialisasi UI
+        JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
+
+        // Tab Transaksi
+        JPanel transactionPanel = createTransactionPanel();
+        tabbedPane.addTab("Transaksi", transactionPanel);
+
+        // Tab Riwayat Transaksi
+        JPanel historyPanel = createHistoryPanel();
+        tabbedPane.addTab("Riwayat", historyPanel);
+
+        // Tab Absensi
+        JPanel attendancePanel = createAttendancePanel();
+        tabbedPane.addTab("Absensi", attendancePanel);
+
+        add(tabbedPane, BorderLayout.CENTER);
+
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
     
@@ -57,14 +77,23 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
 
     private JSplitPane createSplitPanel() {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        JTabbedPane tabbedPane = new JTabbedPane();
+        // Panel Produk dan Transaksi
+        tabbedPane.addTab("Produk", splitPane);
         splitPane.setDividerLocation(400);
         splitPane.setResizeWeight(0.5);
+
+        // Panel Absensi
+        JPanel attendancePanel = createAttendancePanel();
+        tabbedPane.addTab("Absensi", attendancePanel);
 
         JPanel productPanel = createProductPanel();
         splitPane.setLeftComponent(productPanel);
 
         JPanel rightPanel = createRightPanel();
         splitPane.setRightComponent(rightPanel);
+
+        add(tabbedPane, BorderLayout.CENTER);
 
         return splitPane;
     }
@@ -94,9 +123,24 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         JButton restockButton = new JButton("Restock Produk");
         styleButton(restockButton);
         buttonPanel.add(restockButton);
+
+        JButton uploadFileButton = new JButton("Unggah File Restock");
+        styleButton(uploadFileButton); // Jika Anda sudah memiliki metode `styleButton`
+        buttonPanel.add(uploadFileButton);
+
+        // Tombol Absensi
+        JButton attendanceButton = new JButton("Absensi");
+        attendanceButton.setBackground(new Color(0, 122, 255)); // Warna biru
+        attendanceButton.setForeground(Color.WHITE); // Warna teks putih
+        attendanceButton.setFocusPainted(false); // Hilangkan border fokus
+        attendanceButton.setOpaque(true); // Pastikan warna tombol terlihat
+        attendanceButton.addActionListener(e -> handleAttendance());
+        buttonPanel.add(attendanceButton);
     
         productPanel.add(buttonPanel, BorderLayout.SOUTH);
-    
+
+        uploadFileButton.addActionListener(e -> handleFileRestock());
+
         // Event Listener untuk tombol Tambah Produk
         addProductButton.addActionListener(e -> handleAddNewProduct());
     
@@ -415,4 +459,182 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createRaisedBevelBorder());
     }
+
+    private void handleFileRestock() {
+        // Dialog untuk memilih file
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File file = fileChooser.getSelectedFile();
+
+            try (BufferedReader reader = new BufferedReader(new FileReader(file));
+                Connection conn = Database.connect()) {
+
+                String line;
+                int successCount = 0;
+                int errorCount = 0;
+
+            while ((line = reader.readLine()) != null) {
+                // Pisahkan ID dan jumlah berdasarkan format "ID,Jumlah"
+                String[] parts = line.split(",");
+                if (parts.length != 2) {
+                    errorCount++;
+                    continue; // Lewati baris jika format salah
+                }
+
+                try {
+                    int productId = Integer.parseInt(parts[0].trim());
+                    int quantity = Integer.parseInt(parts[1].trim());
+
+                    // Update stok produk di database
+                    String updateStockQuery = "UPDATE products SET stock = stock + ? WHERE id = ?";
+                    PreparedStatement stmt = conn.prepareStatement(updateStockQuery);
+                    stmt.setInt(1, quantity);
+                    stmt.setInt(2, productId);
+                    int rowsUpdated = stmt.executeUpdate();
+
+                    if (rowsUpdated > 0) {
+                        successCount++;
+                    } else {
+                        errorCount++; // Produk dengan ID tidak ditemukan
+                    }
+                } catch (NumberFormatException e) {
+                    errorCount++; // Jika ID atau jumlah tidak valid
+                }
+            }
+
+            // Tampilkan hasil proses
+            JOptionPane.showMessageDialog(this,
+                    "Restock berhasil untuk " + successCount + " produk.\n" +
+                            "Baris gagal diproses: " + errorCount,
+                    "Hasil Restock",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+            // Refresh tabel produk
+            productTableModel.setRowCount(0);
+            loadProductData();
+            } catch (IOException e) {
+                JOptionPane.showMessageDialog(this, "Gagal membaca file!", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Gagal memperbarui stok produk!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    private JPanel createAttendancePanel() {
+        JPanel attendancePanel = new JPanel(new BorderLayout());
+        attendancePanel.setBorder(BorderFactory.createTitledBorder("Absensi Karyawan"));
+    
+        // Form untuk memasukkan kode karyawan
+        JPanel formPanel = new JPanel(new FlowLayout());
+        formPanel.add(new JLabel("Kode Karyawan: "));
+        JTextField employeeCodeField = new JTextField(15);
+        formPanel.add(employeeCodeField);
+        JButton markAttendanceButton = new JButton("Absen");
+        formPanel.add(markAttendanceButton);
+    
+        // Area untuk menampilkan daftar absensi
+        JTextArea attendanceLogArea = new JTextArea(15, 30);
+        attendanceLogArea.setEditable(false);
+        JScrollPane logScrollPane = new JScrollPane(attendanceLogArea);
+    
+        attendancePanel.add(formPanel, BorderLayout.NORTH);
+        attendancePanel.add(logScrollPane, BorderLayout.CENTER);
+    
+        // Action Listener untuk tombol Absen
+        markAttendanceButton.addActionListener(e -> handleAttendanceWithValidation(employeeCodeField, attendanceLogArea));
+    
+        return attendancePanel;
+    }    
+
+    private void handleAttendance() {
+        String staffId = JOptionPane.showInputDialog(this, "Masukkan Kode Karyawan:", "Absensi", JOptionPane.PLAIN_MESSAGE);
+    
+        if (staffId != null && !staffId.trim().isEmpty()) {
+            if (markAttendance(staffId.trim())) {
+                JOptionPane.showMessageDialog(this, "Absensi berhasil untuk Kode Karyawan: " + staffId, "Sukses", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Kode Karyawan tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void updateAttendanceLog(JTextArea attendanceLogArea) { // Method untuk mengupdate log kehadiran
+        attendanceLogArea.setText(""); // Kosongkan area log
+    
+        try (Connection conn = Database.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT a.employee_code, s.name, a.attendance_date " +
+                 "FROM attendance a " +
+                 "JOIN staff s ON a.employee_code = s.employee_code " +
+                 "ORDER BY a.attendance_date DESC")) {
+    
+            while (rs.next()) {
+                String employeeCode = rs.getString("employee_code");
+                String name = rs.getString("name");
+                Timestamp attendanceDate = rs.getTimestamp("attendance_date");
+                attendanceLogArea.append(employeeCode + " (" + name + ") - " + attendanceDate + "\n");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat log absensi!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private void handleAttendanceWithValidation(JTextField employeeCodeField, JTextArea attendanceLogArea) { // Method untuk memastikan kode karyawan valid sebelum mencatat absensi
+        String employeeCode = employeeCodeField.getText().trim();
+    
+        if (employeeCode.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Kode karyawan tidak boleh kosong!", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+    
+        try (Connection conn = Database.connect()) {
+            // Validasi apakah kode karyawan ada di tabel staff
+            String validationQuery = "SELECT name FROM staff WHERE employee_code = ?";
+            PreparedStatement validationStmt = conn.prepareStatement(validationQuery);
+            validationStmt.setString(1, employeeCode);
+            ResultSet rs = validationStmt.executeQuery();
+    
+            if (rs.next()) {
+                // Jika valid, catat absensi
+                String insertQuery = "INSERT INTO attendance (employee_code) VALUES (?)";
+                PreparedStatement insertStmt = conn.prepareStatement(insertQuery);
+                insertStmt.setString(1, employeeCode);
+                insertStmt.executeUpdate();
+    
+                // Tampilkan pesan sukses
+                JOptionPane.showMessageDialog(this, "Absensi berhasil dicatat untuk " + rs.getString("name"), "Sukses", JOptionPane.INFORMATION_MESSAGE);
+    
+                // Perbarui log absensi
+                updateAttendanceLog(attendanceLogArea);
+    
+                // Kosongkan field kode karyawan
+                employeeCodeField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(this, "Kode karyawan tidak ditemukan!", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mencatat absensi!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }
+
+    private boolean markAttendance(String staffId) {
+        try (Connection conn = Database.connect();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO attendance (staff_id, date_time) SELECT id, NOW() FROM staff WHERE id = ?")) {
+    
+            stmt.setString(1, staffId);
+            int rows = stmt.executeUpdate();
+            return rows > 0; // True jika absensi berhasil
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal mencatat absensi!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    
 }
