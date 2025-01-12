@@ -621,13 +621,14 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private boolean markAttendance(String staffId) {
+    private boolean markAttendance(String employeeCode) {
         try (Connection conn = Database.connect();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO attendance (staff_id, date_time) SELECT id, NOW() FROM staff WHERE id = ?")) {
+                     "INSERT INTO attendance (employee_code, attendance_date) " +
+                     "SELECT employee_code, NOW() FROM staff WHERE employee_code = ?")) {
     
-            stmt.setString(1, staffId);
-            int rows = stmt.executeUpdate();
+            stmt.setString(1, employeeCode); // Mengisi parameter employee_code
+            int rows = stmt.executeUpdate(); // Menjalankan query
             return rows > 0; // True jika absensi berhasil
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Gagal mencatat absensi!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -635,6 +636,5 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
             return false;
         }
     }
-    
     
 }
