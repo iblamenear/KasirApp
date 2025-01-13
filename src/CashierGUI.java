@@ -32,20 +32,6 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
     private void initUI() { // Method untuk inisialisasi UI
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
 
-        // Tab Transaksi
-        JPanel transactionPanel = createTransactionPanel();
-        tabbedPane.addTab("Transaksi", transactionPanel);
-
-        // Tab Riwayat Transaksi
-        JPanel historyPanel = createHistoryPanel();
-        tabbedPane.addTab("Riwayat", historyPanel);
-
-        // Tab Absensi
-        JPanel attendancePanel = createAttendancePanel();
-        tabbedPane.addTab("Absensi", attendancePanel);
-
-        add(tabbedPane, BorderLayout.CENTER);
-
         JPanel headerPanel = createHeaderPanel();
         add(headerPanel, BorderLayout.NORTH);
     
@@ -136,6 +122,10 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         attendanceButton.setOpaque(true); // Pastikan warna tombol terlihat
         attendanceButton.addActionListener(e -> handleAttendance());
         buttonPanel.add(attendanceButton);
+
+        JButton viewAttendanceButton = new JButton("Lihat Daftar Absensi");
+        styleButton(viewAttendanceButton);
+        buttonPanel.add(viewAttendanceButton);
     
         productPanel.add(buttonPanel, BorderLayout.SOUTH);
 
@@ -146,6 +136,9 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
     
         // Event Listener untuk tombol Restock Produk
         restockButton.addActionListener(e -> handleRestockProduct());
+
+        // Event Listener untuk tombol Lihat Daftar Absensi
+        viewAttendanceButton.addActionListener(e -> showAttendanceDialog());
     
         return productPanel;
     }
@@ -546,7 +539,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
     
         return attendancePanel;
     }    
-
+    
     private void handleAttendance() {
         String staffId = JOptionPane.showInputDialog(this, "Masukkan Kode Karyawan:", "Absensi", JOptionPane.PLAIN_MESSAGE);
     
@@ -637,4 +630,56 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
     
+    private void loadAttendanceData(DefaultTableModel tableModel) { // Method untuk melihat daftar absensi karyawan
+        tableModel.setRowCount(0); // Kosongkan tabel sebelum memuat data baru
+        try (Connection conn = Database.connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT a.employee_code, s.name, a.attendance_date, s.position " +
+                 "FROM attendance a " +
+                 "JOIN staff s ON a.employee_code = s.employee_code " +
+                 "ORDER BY a.attendance_date DESC")) {
+    
+            while (rs.next()) {
+                String employeeCode = rs.getString("employee_code");
+                String name = rs.getString("name");
+                String position = rs.getString("position");
+                Timestamp attendanceDate = rs.getTimestamp("attendance_date");
+    
+                tableModel.addRow(new Object[]{employeeCode, name, position, attendanceDate});
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Gagal memuat data absensi!", "Error", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
+    }    
+
+    private void showAttendanceDialog() { // Method untuk tombol dan tabel daftar absensi karyawan
+        // Dialog untuk menampilkan data absensi
+        JDialog attendanceDialog = new JDialog(this, "Daftar Absensi Karyawan", true);
+        attendanceDialog.setSize(600, 400);
+        attendanceDialog.setLayout(new BorderLayout());
+    
+        // Model dan tabel absensi
+        DefaultTableModel attendanceTableModel = new DefaultTableModel(
+            new String[]{"Kode Karyawan", "Nama Karyawan", "Jabatan", "Waktu Absensi"}, 0);
+        JTable attendanceTable = new JTable(attendanceTableModel);
+        JScrollPane scrollPane = new JScrollPane(attendanceTable);
+        attendanceDialog.add(scrollPane, BorderLayout.CENTER);
+    
+        // Tombol untuk menutup dialog
+        JButton closeButton = new JButton("Tutup");
+        styleButton(closeButton);
+        closeButton.addActionListener(e -> attendanceDialog.dispose());
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(closeButton);
+        attendanceDialog.add(buttonPanel, BorderLayout.SOUTH);
+    
+        // Muat data absensi
+        loadAttendanceData(attendanceTableModel);
+    
+        attendanceDialog.setLocationRelativeTo(this);
+        attendanceDialog.setVisible(true);
+    }    
+
 }
