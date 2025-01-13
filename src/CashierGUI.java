@@ -10,14 +10,14 @@ import java.io.IOException;
 import java.sql.*;
 
 public class CashierGUI extends JFrame { // Class Cashier GUI
-    private JTable productTable; // Atribut untuk Table
-    private DefaultTableModel productTableModel;
-    private JTable historyTable;
-    private DefaultTableModel historyTableModel;
-    private JTextArea cartTextArea;
-    private double totalHarga = 0;
+    private JTable productTable; // Tabel untuk menampilkan daftar produk
+    private DefaultTableModel productTableModel; // Model tabel untuk daftar produk
+    private JTable historyTable; // Tabel untuk menampilkan riwayat transaksi
+    private DefaultTableModel historyTableModel; // Model tabel untuk riwayat transaksi
+    private JTextArea cartTextArea; // Area teks untuk menampilkan isi keranjang belanja
+    private double totalHarga = 0; // Total harga belanjaan
 
-    public CashierGUI() { // Konstruktor CashierGUI
+    public CashierGUI() { // Konstruktor untuk inisialisasi GUI sistem kasir
         setTitle("Kasir - Dashboard");
         setSize(1000, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -29,7 +29,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         setVisible(true);
     }
 
-    private void initUI() { // Method untuk inisialisasi UI
+    private void initUI() { // Inisialisasi elemen-elemen UI pada frame utama
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.BOTTOM);
 
         JPanel headerPanel = createHeaderPanel();
@@ -42,7 +42,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         getContentPane().setBackground(new Color(173, 216, 230)); // Warna biru muda
     }
 
-    private JPanel createHeaderPanel() {
+    private JPanel createHeaderPanel() { // Panel header yang berisi label selamat datang dan tombol logout
         JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         headerPanel.setBackground(new Color(70, 130, 180)); // Warna biru gelap
         JLabel welcomeLabel = new JLabel("Selamat Datang di Sistem Kasir");
@@ -61,7 +61,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return headerPanel;
     }
 
-    private JSplitPane createSplitPanel() {
+    private JSplitPane createSplitPanel() { // Membuat split panel untuk memisahkan area produk dan transaksi
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         JTabbedPane tabbedPane = new JTabbedPane();
         // Panel Produk dan Transaksi
@@ -84,7 +84,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return splitPane;
     }
 
-    private JPanel createProductPanel() {
+    private JPanel createProductPanel() { // Membuat panel untuk daftar produk dan tombol aksi terkait produk
         JPanel productPanel = new JPanel(new BorderLayout());
         productPanel.setBorder(BorderFactory.createTitledBorder("Daftar Produk"));
         productPanel.setBackground(new Color(224, 255, 255)); // Warna biru muda
@@ -111,7 +111,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         buttonPanel.add(restockButton);
 
         JButton uploadFileButton = new JButton("Unggah File Restock");
-        styleButton(uploadFileButton); // Jika Anda sudah memiliki metode `styleButton`
+        styleButton(uploadFileButton); 
         buttonPanel.add(uploadFileButton);
 
         // Tombol Absensi
@@ -119,10 +119,11 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         attendanceButton.setBackground(new Color(0, 122, 255)); // Warna biru
         attendanceButton.setForeground(Color.WHITE); // Warna teks putih
         attendanceButton.setFocusPainted(false); // Hilangkan border fokus
-        attendanceButton.setOpaque(true); // Pastikan warna tombol terlihat
+        attendanceButton.setOpaque(true); // Memastikan warna tombol terlihat
         attendanceButton.addActionListener(e -> handleAttendance());
         buttonPanel.add(attendanceButton);
 
+        // Tombol Daftar Absensi
         JButton viewAttendanceButton = new JButton("Lihat Daftar Absensi");
         styleButton(viewAttendanceButton);
         buttonPanel.add(viewAttendanceButton);
@@ -143,7 +144,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return productPanel;
     }
 
-    private JPanel createRightPanel() {
+    private JPanel createRightPanel() { // Membuat panel kanan untuk menampilkan keranjang dan riwayat transaksi
         JPanel rightPanel = new JPanel(new BorderLayout());
 
         JPanel transactionPanel = createTransactionPanel();
@@ -155,7 +156,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return rightPanel;
     }
 
-    private JPanel createTransactionPanel() {
+    private JPanel createTransactionPanel() { // Membuat panel keranjang belanja
         JPanel transactionPanel = new JPanel(new BorderLayout());
         transactionPanel.setBorder(BorderFactory.createTitledBorder("Keranjang"));
         transactionPanel.setBackground(new Color(224, 255, 255)); // Warna biru muda
@@ -196,7 +197,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return transactionPanel;
     }
 
-    private JPanel createHistoryPanel() {
+    private JPanel createHistoryPanel() { // Membuat panel riwayat transaksi
         JPanel historyPanel = new JPanel(new BorderLayout());
         historyPanel.setBorder(BorderFactory.createTitledBorder("Riwayat Transaksi"));
         historyPanel.setBackground(new Color(224, 255, 255)); // Warna biru muda
@@ -220,7 +221,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return historyPanel;
     }
 
-    private void handleAddToCart(JTextField productIdField, JTextField quantityField) {
+    private void handleAddToCart(JTextField productIdField, JTextField quantityField) { // Method untuk menangani penambahan item ke keranjang belanja
         try {
             int productId = Integer.parseInt(productIdField.getText());
             int quantity = Integer.parseInt(quantityField.getText());
@@ -237,7 +238,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void handleCheckout() {
+    private void handleCheckout() { // Menangani proses checkout keranjang belanja
         if (totalHarga > 0) {
             checkout();
             productTableModel.setRowCount(0);
@@ -249,7 +250,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void loadProductData() {
+    private void loadProductData() { // Memuat data produk dari database ke tabel produk
         try (Connection conn = Database.connect();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM products")) {
@@ -266,7 +267,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void addToCart(int productId, int quantity) {
+    private void addToCart(int productId, int quantity) { // Menambahkan produk ke keranjang belanja
         try (Connection conn = Database.connect();
              PreparedStatement productStmt = conn.prepareStatement("SELECT * FROM products WHERE id = ?")) {
 
@@ -292,7 +293,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void checkout() {
+    private void checkout() { // Melakukan proses checkout dan mencatat transaksi ke database
         try (Connection conn = Database.connect()) {
             String[] cartItems = cartTextArea.getText().split("\n");
     
@@ -333,17 +334,20 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
     
-    private void handleAddNewProduct() {
+    private void handleAddNewProduct() { // Menangani penambahan produk baru ke database
+        // Komponen input untuk menambahkan produk baru
         JTextField productNameField = new JTextField();
         JTextField productPriceField = new JTextField();
         JTextField productStockField = new JTextField();
 
+        // Menampilkan dialog untuk mengisi detail produk
         Object[] inputFields = {
             "Nama Produk:", productNameField,
             "Harga Produk:", productPriceField,
             "Stok Produk:", productStockField
         };
 
+        // Mengambil data produk dari pengguna dan menyimpannya ke database
         int option = JOptionPane.showConfirmDialog(null, inputFields, "Tambah Produk Baru", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             String name = productNameField.getText();
@@ -351,17 +355,21 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
             int stock;
 
             try {
+                // Parsing harga dan stok dari input pengguna
                 price = Double.parseDouble(productPriceField.getText());
                 stock = Integer.parseInt(productStockField.getText());
-
+                
+                // Menyimpan data produk ke database menggunakan PreparedStatement
                 try (Connection conn = Database.connect();
                      PreparedStatement stmt = conn.prepareStatement("INSERT INTO products (name, price, stock) VALUES (?, ?, ?)");) {
                     stmt.setString(1, name);
                     stmt.setDouble(2, price);
                     stmt.setInt(3, stock);
                     stmt.executeUpdate();
+
+                    // Menampilkan pesan sukses
                     JOptionPane.showMessageDialog(null, "Produk baru berhasil ditambahkan!");
-                    productTableModel.setRowCount(0);
+                    productTableModel.setRowCount(0); // Refresh data di tabel
                     loadProductData();
                 }
             } catch (NumberFormatException e) {
@@ -372,16 +380,19 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
+    // Method untuk menangani restock produk berdasarkan ID
     private void handleRestockProduct() {
         JTextField productIdField = new JTextField();
         JTextField restockAmountField = new JTextField();
 
+        // Menampilkan input dialog ke pengguna
         Object[] inputFields = {
             "ID Produk:", productIdField,
             "Jumlah Restock:", restockAmountField
         };
 
         int option = JOptionPane.showConfirmDialog(null, inputFields, "Restock Produk", JOptionPane.OK_CANCEL_OPTION);
+        // Mengupdate stok produk di database
         if (option == JOptionPane.OK_OPTION) {
             int productId;
             int restockAmount;
@@ -390,6 +401,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
                 productId = Integer.parseInt(productIdField.getText());
                 restockAmount = Integer.parseInt(restockAmountField.getText());
 
+                // Query untuk memperbarui stok produk
                 try (Connection conn = Database.connect();
                      PreparedStatement stmt = conn.prepareStatement("UPDATE products SET stock = stock + ? WHERE id = ?");) {
                     stmt.setInt(1, restockAmount);
@@ -412,13 +424,14 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void loadTransactionHistory() {
-        historyTableModel.setRowCount(0);
+    private void loadTransactionHistory() { // Method untuk memuat riwayat transaksi ke tabel
+        historyTableModel.setRowCount(0); // Kosongkan tabel
         try (Connection conn = Database.connect();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT t.id, p.name, t.quantity, t.total, t.transaction_date FROM transactions t JOIN products p ON t.product_id = p.id")) {
 
             while (rs.next()) {
+                // Menambahkan baris ke tabel riwayat transaksi
                 int id = rs.getInt("id");
                 String name = rs.getString("name");
                 int quantity = rs.getInt("quantity");

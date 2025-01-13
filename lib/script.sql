@@ -38,3 +38,22 @@ VALUES ('Nescafe Ice Black', 8000, 100),
        ('Yoghurt Cimory', 10000, 120),
        ('Susu Ultra Milk Full Cream', 8000,100),
        ('Silverqueen Very Berry Yoghurt',20000,100);
+       
+CREATE TABLE attendance (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_code VARCHAR(50) NOT NULL,
+    attendance_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE staff (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    employee_code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    position VARCHAR(50) NOT NULL
+);
+
+INSERT INTO staff (employee_code, name, position) VALUES
+('MR01', 'Nafilah', 'Kasir'),
+('MR02', 'Thifaal', 'Kasir'),
+('MR03', 'Justin', 'Kasir'),
+('MR04', 'Valdi', 'Kasir');
