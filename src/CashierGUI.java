@@ -42,25 +42,32 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         getContentPane().setBackground(new Color(173, 216, 230)); // Warna biru muda
     }
 
-    private JPanel createHeaderPanel() { // Panel header yang berisi label selamat datang dan tombol logout
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        headerPanel.setBackground(new Color(70, 130, 180)); // Warna biru gelap
-        JLabel welcomeLabel = new JLabel("Selamat Datang di Sistem Kasir");
-        welcomeLabel.setForeground(Color.WHITE); // Teks putih
-        headerPanel.add(welcomeLabel);
-    
-        JButton logoutButton = new JButton("Logout");
-        styleButton(logoutButton); // Terapkan gaya tombol
-        headerPanel.add(logoutButton);
-    
-        logoutButton.addActionListener(e -> {
-            JOptionPane.showMessageDialog(null, "Logout Berhasil!");
-            System.exit(0);
-        });
-    
-        return headerPanel;
-    }
+    private JPanel createHeaderPanel() { 
+    // Panel header yang berisi label selamat datang dan tombol logout
+    JPanel headerPanel = new JPanel(new BorderLayout());
+    headerPanel.setBackground(new Color(70, 130, 180)); // Warna biru gelap
 
+    // Label Selamat Datang
+    JLabel welcomeLabel = new JLabel("Selamat Datang di Sistem Kasir", SwingConstants.CENTER);
+    welcomeLabel.setForeground(Color.WHITE); // Teks putih
+    welcomeLabel.setFont(new Font("Arial", Font.BOLD, 20)); // Font lebih besar dan tebal
+    welcomeLabel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Margin
+    headerPanel.add(welcomeLabel, BorderLayout.CENTER);
+
+    // Tombol Logout
+    JButton logoutButton = new JButton("Logout");
+    styleButton(logoutButton); // Terapkan gaya tombol
+    logoutButton.setPreferredSize(new Dimension(100, 30)); // Ukuran tombol
+    headerPanel.add(logoutButton, BorderLayout.EAST);
+
+    // Event handler untuk logout
+    logoutButton.addActionListener(e -> {
+        JOptionPane.showMessageDialog(null, "Logout Berhasil!", "Informasi", JOptionPane.INFORMATION_MESSAGE);
+        System.exit(0);
+    });
+
+    return headerPanel;
+}
     private JSplitPane createSplitPanel() { // Membuat split panel untuk memisahkan area produk dan transaksi
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         JTabbedPane tabbedPane = new JTabbedPane();
@@ -155,7 +162,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
 
         return rightPanel;
     }
-
+    
     private JPanel createTransactionPanel() { // Membuat panel keranjang belanja
         JPanel transactionPanel = new JPanel(new BorderLayout());
         transactionPanel.setBorder(BorderFactory.createTitledBorder("Keranjang"));
