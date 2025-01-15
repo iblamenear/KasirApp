@@ -444,7 +444,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private void printReceipt() {
+    private void printReceipt() { // Method untuk mencetak struk pembelian
         if (cartTextArea.getText().isEmpty()) {
             JOptionPane.showMessageDialog(null, "Keranjang kosong! Tidak ada yang bisa dicetak.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
@@ -459,14 +459,14 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         JOptionPane.showMessageDialog(null, new JScrollPane(receiptArea), "Struk Pembelian", JOptionPane.INFORMATION_MESSAGE);
     }
 
-    private void styleButton(JButton button) {
+    private void styleButton(JButton button) { // Method untuk mengatur gaya tombol dengan warna latar belakang biru gelap, teks putih.
         button.setBackground(new Color(70, 130, 180)); // Warna biru gelap
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createRaisedBevelBorder());
     }
 
-    private void handleFileRestock() {
+    private void handleFileRestock() { // Method untuk memproses restock produk dari file yang dipilih oleh pengguna
         // Dialog untuk memilih file
         JFileChooser fileChooser = new JFileChooser();
         int result = fileChooser.showOpenDialog(this);
@@ -527,7 +527,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private JPanel createAttendancePanel() {
+    private JPanel createAttendancePanel() { // Membuat panel untuk fitur absensi karyawan dengan form input dan log daftar absensi
         JPanel attendancePanel = new JPanel(new BorderLayout());
         attendancePanel.setBorder(BorderFactory.createTitledBorder("Absensi Karyawan"));
     
@@ -553,7 +553,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         return attendancePanel;
     }    
     
-    private void handleAttendance() {
+    private void handleAttendance() { // Method untuk menangani proses absensi karyawan berdasarkan kode yang dimasukkan pengguna
         String staffId = JOptionPane.showInputDialog(this, "Masukkan Kode Karyawan:", "Absensi", JOptionPane.PLAIN_MESSAGE);
     
         if (staffId != null && !staffId.trim().isEmpty()) {
@@ -627,7 +627,7 @@ public class CashierGUI extends JFrame { // Class Cashier GUI
         }
     }
 
-    private boolean markAttendance(String employeeCode) {
+    private boolean markAttendance(String employeeCode) { // Mencatat absensi karyawan ke database berdasarkan kode karyawan
         try (Connection conn = Database.connect();
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO attendance (employee_code, attendance_date) " +
