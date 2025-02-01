@@ -36,7 +36,8 @@ public class Database {
                         "id INT PRIMARY KEY AUTO_INCREMENT," +
                         "name VARCHAR(50)," +
                         "price DOUBLE," +
-                        "stock INT" +
+                        "stock INT," +
+                        "category VARCHAR(20)" + 
                         ")";
                 stmt.execute(createProductTable);
             }

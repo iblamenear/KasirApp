@@ -1,6 +1,7 @@
 -- Membuat database
 CREATE DATABASE cashier;
 USE cashier;
+drop database cashier;
 
 -- Tabel pengguna (users) untuk login
 CREATE TABLE users (
@@ -16,6 +17,7 @@ CREATE TABLE products (
     price DOUBLE NOT NULL,
     stock INT NOT NULL
 );
+ALTER TABLE products ADD COLUMN category VARCHAR(20);
 
 -- Tabel transaksi (transactions) untuk mencatat pembelian
 CREATE TABLE transactions (
@@ -31,13 +33,13 @@ CREATE TABLE transactions (
 INSERT INTO users (username, password) VALUES ('admin', 'admin123');
 
 -- Data awal untuk tabel products (Contoh produk)
-INSERT INTO products (name, price, stock) 
-VALUES ('Nescafe Ice Black', 8000, 100), 
-       ('Sosis Kanzler', 10000, 200), 
-       ('Ice Cream Paddle Pop', 3000, 150), 
-       ('Yoghurt Cimory', 10000, 120),
-       ('Susu Ultra Milk Full Cream', 8000,100),
-       ('Silverqueen Very Berry Yoghurt',20000,100);
+INSERT INTO products (name, price, stock, category) 
+VALUES ('Kelapa Sawit', 8000, 100, "BahanMentah"), 
+       ('Tebu', 5000, 200, "BahanMentah"), 
+       ('Biji Kopi', 3000, 150, "Biji"), 
+       ('Biji Kakao', 10000, 120, "Biji"),
+       ('Cengkeh', 8000,100, "BahanMentah"),
+       ('Pisang',20000,100, "BahanMentah");
        
 CREATE TABLE attendance (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -57,3 +59,4 @@ INSERT INTO staff (employee_code, name, position) VALUES
 ('MR02', 'Thifaal', 'Kasir'),
 ('MR03', 'Justin', 'Kasir'),
 ('MR04', 'Valdi', 'Kasir');
+

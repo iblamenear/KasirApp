@@ -3,8 +3,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 
 public class ProductPanel extends JPanel {
-    private static DefaultTableModel tableModel;
+    private DefaultTableModel tableModel;
     private JTable productTable;
+    private JComboBox<String> categoryFilter;
     
     public ProductPanel() {
         setLayout(new BorderLayout());
@@ -12,16 +13,28 @@ public class ProductPanel extends JPanel {
         
         initializeTable();
         initializeButtons();
+        initializeCategoryFilter();
         loadProducts();
     }
 
+    private void initializeCategoryFilter() {
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        categoryFilter = new JComboBox<>(new String[]{"Semua", "BahanMentah", "Biji"});
+        categoryFilter.addActionListener(e -> loadProducts());
+        filterPanel.add(new JLabel("Filter Kategori:"));
+        filterPanel.add(categoryFilter);
+        add(filterPanel, BorderLayout.NORTH);
+    }
+
     private void initializeTable() {
-        tableModel = new DefaultTableModel(new String[]{"ID", "Nama", "Harga", "Stok"}, 0);
+        tableModel = new DefaultTableModel(
+            new String[]{"ID", "Nama", "Harga", "Stok", "Kategori"}, 0
+        );
         productTable = new JTable(tableModel);
         add(new JScrollPane(productTable), BorderLayout.CENTER);
     }
 
-    public static DefaultTableModel getProductModel() {
+    public DefaultTableModel getProductModel() {
         return tableModel;
     }
 
@@ -42,7 +55,7 @@ public class ProductPanel extends JPanel {
     private void handleProductAction(String action) {
         switch(action) {
             case "Tambah Produk":
-                ProductController.showAddProductDialog(tableModel);
+                ProductController.showAddProductDialog(tableModel, this);
                 break;
             case "Restock":
                 ProductController.showRestockDialog(tableModel);
@@ -54,10 +67,15 @@ public class ProductPanel extends JPanel {
     }
 
     public void loadProducts() {
-        ProductController.loadProducts(tableModel);
+        String selectedCategory = (String) categoryFilter.getSelectedItem();
+        ProductController.loadProducts(tableModel, getSelectedCategory());
     }
 
-    public static DefaultTableModel getModel() {
+    public DefaultTableModel getModel() {
         return tableModel;
+    }
+
+    public String getSelectedCategory() {
+        return (String) categoryFilter.getSelectedItem();
     }
 }

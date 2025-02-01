@@ -5,7 +5,6 @@ import java.sql.*;
 
 public class TransactionController {
     private static double total = 0;
-    private static HistoryPanel historyPanel = new HistoryPanel();
 
     public static void addToCart(String productId, String quantity, JTextArea cartArea) {
         try (Connection conn = Database.connect();
@@ -58,7 +57,8 @@ public class TransactionController {
 
     public static void checkout(JTextArea cartArea, 
                                DefaultTableModel productModel, 
-                               HistoryPanel historyPanel) {
+                               HistoryPanel historyPanel,
+                               ProductPanel productPanel) {
         if (cartArea.getText().isEmpty()) {
             UIHelper.showError("Keranjang kosong!");
             return;
@@ -101,7 +101,7 @@ public class TransactionController {
             total = 0;
             
             // Refresh data
-            ProductController.loadProducts(productModel);
+            ProductController.loadProducts(productModel, productPanel.getSelectedCategory());
             historyPanel.refreshHistory();
             
         } catch (Exception e) {

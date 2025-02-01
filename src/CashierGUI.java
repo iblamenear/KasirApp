@@ -6,6 +6,7 @@ public class CashierGUI extends JFrame {
     private TransactionPanel transactionPanel;
     private AttendancePanel attendancePanel;
     private HistoryPanel historyPanel;
+    
 
     public CashierGUI() {
         setTitle("Kasir - Dashboard");
@@ -21,7 +22,7 @@ public class CashierGUI extends JFrame {
         // Inisialisasi komponen SEBELUM digunakan
         historyPanel = new HistoryPanel(); // Inisialisasi pertama
         productPanel = new ProductPanel();
-        transactionPanel = new TransactionPanel(historyPanel);
+        transactionPanel = new TransactionPanel(historyPanel, productPanel);
         attendancePanel = new AttendancePanel();
 
         // Header

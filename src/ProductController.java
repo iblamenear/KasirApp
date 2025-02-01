@@ -6,18 +6,28 @@ import java.io.FileReader;
 import java.sql.*;
 
 public class ProductController {
-    public static void loadProducts(DefaultTableModel model) {
-        try (Connection conn = Database.connect();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM products")) {
+    public static void loadProducts(DefaultTableModel model, String selectedCategory) {
+        try (Connection conn = Database.connect()) {
+            String query = "SELECT * FROM products";
+            if (selectedCategory != null && !selectedCategory.equals("Semua")) {
+                query += " WHERE category = ?";
+            }
             
-            model.setRowCount(0);
+            PreparedStatement stmt = conn.prepareStatement(query);
+            if (selectedCategory != null && !selectedCategory.equals("Semua")) {
+                stmt.setString(1, selectedCategory);
+            }
+            
+            ResultSet rs = stmt.executeQuery();
+            model.setRowCount(0); // Reset tabel
+            
             while(rs.next()) {
                 model.addRow(new Object[]{
                     rs.getInt("id"),
                     rs.getString("name"),
                     rs.getDouble("price"),
-                    rs.getInt("stock")
+                    rs.getInt("stock"),
+                    rs.getString("category")
                 });
             }
         } catch (SQLException e) {
@@ -25,35 +35,40 @@ public class ProductController {
         }
     }
 
-    public static void showAddProductDialog(DefaultTableModel model) {
+    public static void showAddProductDialog(DefaultTableModel model, ProductPanel productPanel) {
         JTextField nameField = new JTextField();
         JTextField priceField = new JTextField();
         JTextField stockField = new JTextField();
-
+        JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"BahanMentah", "Biji"});
+    
         Object[] fields = {
             "Nama Produk:", nameField,
             "Harga:", priceField,
-            "Stok:", stockField
+            "Stok:", stockField,
+            "Kategori:", categoryCombo
         };
-
+    
         int option = JOptionPane.showConfirmDialog(null, fields, "Tambah Produk", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {
             try (Connection conn = Database.connect();
                  PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO products (name, price, stock) VALUES (?, ?, ?)")) {
+                     "INSERT INTO products (name, price, stock, category) VALUES (?, ?, ?, ?)")) {
                 
                 stmt.setString(1, nameField.getText());
                 stmt.setDouble(2, Double.parseDouble(priceField.getText()));
                 stmt.setInt(3, Integer.parseInt(stockField.getText()));
+                stmt.setString(4, (String) categoryCombo.getSelectedItem());
                 stmt.executeUpdate();
                 
-                loadProducts(model);
+                // Gunakan parameter productPanel
+                ProductController.loadProducts(model, productPanel.getSelectedCategory());
             } catch (Exception e) {
-                UIHelper.showError("Input tidak valid!");
+                e.printStackTrace();
+                UIHelper.showError("Input tidak valid! Pastikan format angka benar");
             }
         }
     }
-
+    
     public static void showRestockDialog(DefaultTableModel model) {
         JTextField idField = new JTextField();
         JTextField qtyField = new JTextField();
@@ -79,7 +94,7 @@ public class ProductController {
                 stmt.setInt(2, Integer.parseInt(idField.getText()));
                 stmt.executeUpdate();
                 
-                loadProducts(model);
+                loadProducts(model, null);
             } catch (Exception e) {
                 UIHelper.showError("Input restock tidak valid!");
             }
@@ -105,7 +120,7 @@ public class ProductController {
                         stmt.executeUpdate();
                     }
                 }
-                loadProducts(model);
+                loadProducts(model, null);
             } catch (Exception e) {
                 UIHelper.showError("File tidak valid!");
             }

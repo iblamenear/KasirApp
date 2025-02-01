@@ -8,9 +8,11 @@ public class TransactionPanel extends JPanel {
     private JTextField quantityField;
     private JButton checkoutBtn; // Deklarasi button sebagai variabel instance
     private HistoryPanel historyPanel;
+    private ProductPanel productPanel; // Declare productPanel
 
-    public TransactionPanel(HistoryPanel historyPanel) {
+    public TransactionPanel(HistoryPanel historyPanel, ProductPanel productPanel) {
         this.historyPanel = historyPanel;
+        this.productPanel = productPanel;// Initialize productPanel
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createTitledBorder("Transaksi"));
         
@@ -74,8 +76,9 @@ public class TransactionPanel extends JPanel {
     private void handleCheckout(ActionEvent e) {
             TransactionController.checkout(
             cartArea,
-            ProductPanel.getProductModel(),  // Gunakan method accessor
-            historyPanel
+            productPanel.getModel(),  // Gunakan method accessor
+            historyPanel,
+            productPanel
         );
     }
 
