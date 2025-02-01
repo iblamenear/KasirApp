@@ -19,15 +19,38 @@ public class ProductController {
             }
             
             ResultSet rs = stmt.executeQuery();
-            model.setRowCount(0); // Reset tabel
+            model.setRowCount(0);
             
             while(rs.next()) {
+                Product product;
+                String category = rs.getString("category");
+                
+                // Pola Factory sederhana untuk polymorphism
+                switch(category) {
+                    case "BahanMentah":
+                        product = new BahanMentah(
+                            rs.getString("name"),
+                            rs.getDouble("price"),
+                            rs.getInt("stock")
+                        );
+                        break;
+                    case "Biji":
+                        product = new Biji(
+                            rs.getString("name"),
+                            rs.getDouble("price"),
+                            rs.getInt("stock")
+                        );
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Kategori produk tidak valid");
+                }
+                
                 model.addRow(new Object[]{
                     rs.getInt("id"),
-                    rs.getString("name"),
-                    rs.getDouble("price"),
-                    rs.getInt("stock"),
-                    rs.getString("category")
+                    product.getName(), // Gunakan method polymorphic
+                    product.getPrice(),
+                    product.getStock(),
+                    product.getCategory()
                 });
             }
         } catch (SQLException e) {

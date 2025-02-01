@@ -1,12 +1,26 @@
-public class Product {
+public abstract class Product {
     private String name;
     private double price;
     private int stock;
+    private String category;
 
-    public Product(String name, double price, int stock) {
+    public Product(String name, double price, int stock, String category) {
         this.name = name;
         this.price = price;
         this.stock = stock;
+        this.category = category;
+    }
+
+    // Abstract method untuk polymorphism
+    public abstract String getDescription();
+
+    // Method untuk override
+    public boolean reduceStock(int amount) {
+        if (amount <= stock) {
+            stock -= amount;
+            return true;
+        }
+        return false;
     }
 
     public String getName() {
@@ -25,9 +39,7 @@ public class Product {
         this.stock = stock;
     }
 
-    public void reduceStock(int amount) {
-        if (amount <= stock) {
-            stock -= amount;
-        }
+    public String getCategory() { 
+        return category; 
     }
 }

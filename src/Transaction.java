@@ -10,10 +10,11 @@ public class Transaction {
     }
 
     public void addProduct(Product product, int quantity) {
-        if (product.getStock() >= quantity) {
-            product.reduceStock(quantity);
+        if (product.reduceStock(quantity)) { // Gunakan method polymorphic
             products.add(product);
             total += product.getPrice() * quantity;
+        } else {
+            throw new IllegalArgumentException("Gagal mengurangi stok untuk " + product.getName());
         }
     }
 
